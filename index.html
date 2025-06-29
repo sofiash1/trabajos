@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gestión de Inventario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen font-sans transition">
+
+    <!-- Encabezado -->
+    <header class="bg-green-600 dark:bg-green-800 text-white py-4 px-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Maquetado con Tailwind</h1>
+        <span>Bienvenida, Sofía</span>
+    </header>
+
+    <!-- Botón registrar -->
+    <div class="text-center mt-8">
+        <button onclick="document.getElementById('formularioRegistro').classList.remove('hidden')"
+            class="bg-white dark:bg-cyan-800 border-2 border-green-600 text-green-500 font-semibold py-2 px-4 rounded-full hover:bg-green-600 hover:text-white transition">
+            Registro de equipos
+        </button>
+    </div>
+
+    <!-- Formulario de registro -->
+    <div id="formularioRegistro"
+        class="max-w-xl mx-auto bg-white dark:bg-gray-800 text-black dark:text-white shadow-lg rounded-xl p-6 mt-6 hidden">
+        <h2 class="text-xl font-bold mb-4">Registrar equipo</h2>
+        <form id="formAgregar">
+            <input type="text" placeholder="Serial" name="serial" required class="input">
+            <input type="text" placeholder="Marca" name="marca" required class="input">
+            <select name="estado" class="input">
+                <option value="Disponible">Disponible</option>
+                <option value="Inhabilitado">Inhabilitado</option>
+            </select>
+            <button type="submit"
+                class="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700">Guardar</button>
+        </form>
+    </div>
+
+    <!-- Tabla de datos -->
+    <div class="overflow-x-auto mt-10 max-w-5xl mx-auto">
+        <table
+            class="w-full text-sm text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl shadow-lg overflow-hidden">
+            <thead class="bg-green-600 dark:bg-green-800 text-white">
+                <tr>
+                    <th class="py-2 px-4">Serial</th>
+                    <th>Marca</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaEquipos" class="text-gray-800 dark:text-black bg-white"></tbody>
+                <!-- Registros dinámicos -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulario de edición (modal) -->
+    <div id="formularioEditar" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md text-black dark:text-white">
+            <h2 class="text-xl font-bold mb-4">Editar equipo</h2>
+            <form id="formEditar">
+                <input type="text" name="serial" id="editarSerial" class="input" required>
+                <input type="text" name="marca" id="editarMarca" class="input" required>
+                <select id="editarEstado" name="estado" class="input dark">
+                    <option value="Disponible">Disponible</option>
+                    <option value="Inhabilitado">Inhabilitado</option>
+                </select>
+                <div class="flex justify-between mt-4">
+                    <button type="submit"
+                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Actualizar</button>
+                    <button type="button" onclick="cerrarModal()" class="text-red-600 font-bold">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    
+
+
+    <script>
+      
+        // CRUD dinámico
+        const tabla = document.getElementById('tablaEquipos');
+        const formAgregar = document.getElementById('formAgregar');
+        const formEditar = document.getElementById('formEditar');
+        const editarSerial = document.getElementById('editarSerial');
+        const editarMarca = document.getElementById('editarMarca');
+        const editarEstado = document.getElementById('editarEstado');
+        const modalEditar = document.getElementById('formularioEditar');
+
+        let equipos = [];
+        let editIndex = null;
+
+        formAgregar.addEventListener('submit', e => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(formAgregar).entries());
+            equipos.push(data);
+            formAgregar.reset();
+            actualizarTabla();
+        });
+
+        formEditar.addEventListener('submit', e => {
+            e.preventDefault();
+            equipos[editIndex] = {
+                serial: editarSerial.value,
+                marca: editarMarca.value,
+                estado: editarEstado.value
+            };
+            cerrarModal();
+            actualizarTabla();
+        });
+
+        function actualizarTabla() {
+            tabla.innerHTML = '';
+            equipos.forEach((equipo, index) => {
+                tabla.innerHTML += `
+          <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <td class="py-2">${equipo.serial}</td>
+            <td>${equipo.marca}</td>
+            <td>${equipo.estado}</td>
+            <td class="flex justify-center gap-2 py-2">
+              <button onclick="editar(${index})" class="text-green-600 hover:text-green-800 text-lg">editar</button>
+              <button onclick="eliminar(${index})" class="text-red-600 hover:text-red-800 text-lg">Eliminar</button>
+            </td>
+          </tr>`;
+            });
+        }
+
+        function editar(index) {
+            editIndex = index;
+            const equipo = equipos[index];
+            editarSerial.value = equipo.serial;
+            editarMarca.value = equipo.marca;
+            editarEstado.value = equipo.estado;
+            modalEditar.classList.remove('hidden');
+        }
+
+        function eliminar(index) {
+            equipos.splice(index, 1);
+            actualizarTabla();
+        }
+
+        function cerrarModal() {
+            modalEditar.classList.add('hidden');
+        }
+    </script>
+
+</body>
+
+</html>
